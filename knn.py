@@ -163,6 +163,7 @@ class KNN:
         if (Y.ndim == 1 and self.ny != 1) or (Y.ndim != 1 and Y.shape[-1] != self.ny):
             raise ValueError("Shape of Y must be (m by ny).")
         if Y.ndim == 1 and len(Y) > self.ny: Y = Y[:, np.newaxis]
+        if Y_val.ndim == 1 and len(Y_val) > self.ny: Y_val = Y_val[:, np.newaxis]
 
         # Set-up
         if method == 'ekf':
@@ -210,12 +211,15 @@ class KNN:
 
         # Shuffle data between epochs
         print("Training...")
-        for epoch in tqdm(range(nepochs)):
+        pbar = tqdm(range(nepochs))
+        for epoch in pbar:
             rand_idx = np.random.permutation(len(U))
             U_shuffled = U[rand_idx]
             Y_shuffled = Y[rand_idx]
             RMS.append(self.compute_rms(U_val, Y_val))
-
+            
+            pbar.set_description(f"Epoch: {epoch+1} Rms Error: {RMS[-1]:.3e}")
+            
             # Check for convergence
             if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-dslew])/dslew < dtol:
                 print("\nConverged after {} epochs!\n\n".format(epoch+1))
@@ -231,12 +235,12 @@ class KNN:
                 self.update(u, y, h, l, step)
                 if method == 'ekf': trcov.append(np.trace(self.P))
                 
-            if (epoch % print_every ==0):
-                print("------------------")
-                print("  Epoch: {}".format((epoch+1)))
-                print(" Validation RMSE: {}".format(np.round(RMS[-1], 6)))
-                if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-                print("------------------")
+#             if (epoch % print_every ==0):
+#                 print("------------------")
+#                 print("  Epoch: {}".format((epoch+1)))
+#                 print(" Validation RMSE: {}".format(np.round(RMS[-1], 6)))
+#                 if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
+#                 print("------------------")
                     
                 # Heartbeat
 #                 if (pulse_T >= 0 and time()-last_pulse > pulse_T) or (epoch == nepochs-1 and i == len(U)-1):
