@@ -1,0 +1,28 @@
+1) Insert below the student numbers and names of the 1-3 group members, one per line
+722472 Ananth Mahadevan 
+722074 Abhilash Jain
+
+2) Write below the name of your group
+KalmanKillsSGD
+
+3) Write below a short description of the machine learning problem you plan to address
+To implement EKF(Extended Kalman Filter) as an optimization technique in a Multilayer Perceptrons and compare the results with traditional SGD based optimization schemes 
+
+4) Write below what deep learning approach(es) you plan to employ in your project
+Kalman Filters and Extended Kalman Filters for parameter optimization, Multilayer perceptrons and neural networks in general.  
+
+5) Write below what deep learning software you plan to use in your project
+pytorch to utilize the autograd software, optional: a faster numpy implementation only for EKF matrix multiplication tasks
+
+6) Write below what computational resources you plan to utilize in your project
+Panniikki Computers, GPUs, Online resources
+
+7) Write below what kind of data you plan to use in your experiments
+Regression and Timeseries data such as basic datasets provided in UCI, Eg: Abalone, Bike, Wine quality etc. The datasets are simpler as we wish to understand convergence of EKF for simple networks 
+
+8) Write below what are the reference methods and results you plan to compare against
+Training Neural Networks for Classification Using the Extended Kalman Filter: A Comparative Study
+
+A sequential learning method with Kalman filter and extreme learning machine for regression and time series forecasting
+
+Evolutionary Deep Learning with Extended Kalman Filter for Effective Prediction Modeling and Efficient Data Assimilation
