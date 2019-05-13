@@ -10,6 +10,7 @@ import numpy as np; npl = np.linalg
 from scipy.linalg import block_diag
 from time import time
 import pickle
+from tqdm import tqdm
 
 ##########
 
@@ -126,7 +127,7 @@ class KNN:
 
 ####
 
-    def train(self, nepochs, U, Y, method, P=None, Q=None, R=None, step=1, dtol=-1, dslew=1, pulse_T=-1):
+    def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, dtol=-1, dslew=1, print_every=1):
         """
         nepochs: number of epochs (presentations of the training data); integer
               U: input training data; float array m samples by nu inputs
@@ -138,7 +139,8 @@ class KNN:
            step: step-size scaling; float scalar
            dtol: finish when RMS error avg change is <dtol (or nepochs exceeded); float scalar
           dslew: how many deltas over which to examine average RMS change; integer
-        pulse_T: number of seconds between displaying current training status; float
+        print_every: After how many epoch it should print 
+        #pulse_T: number of seconds between displaying current training status; float
 
         If method is 'sgd' then P, Q, and R are unused, so carefully choose step.
         If method is 'ekf' then step=1 is "optimal", R must be specified, and:
@@ -202,17 +204,17 @@ class KNN:
             self.update = self._sgd
         else:
             raise ValueError("The method argument must be either 'ekf' or 'sgd'.")
-        last_pulse = 0
+        #last_pulse = 0
         RMS = []
         trcov = []
 
         # Shuffle data between epochs
         print("Training...")
-        for epoch in range(nepochs):
+        for epoch in tqdm(range(nepochs)):
             rand_idx = np.random.permutation(len(U))
             U_shuffled = U[rand_idx]
             Y_shuffled = Y[rand_idx]
-            RMS.append(self.compute_rms(U, Y))
+            RMS.append(self.compute_rms(U_val, Y_val))
 
             # Check for convergence
             if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-dslew])/dslew < dtol:
@@ -228,16 +230,24 @@ class KNN:
                 # Do the learning
                 self.update(u, y, h, l, step)
                 if method == 'ekf': trcov.append(np.trace(self.P))
-
+                
+            if (epoch % print_every ==0):
+                print("------------------")
+                print("  Epoch: {}".format((epoch+1)))
+                print(" Validation RMSE: {}".format(np.round(RMS[-1], 6)))
+                if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
+                print("------------------")
+                    
                 # Heartbeat
-                if (pulse_T >= 0 and time()-last_pulse > pulse_T) or (epoch == nepochs-1 and i == len(U)-1):
-                    print("------------------")
-                    print("  Epoch: {}%".format(int(100*(epoch+1)/nepochs)))
-                    print("   Iter: {}%".format(int(100*(i+1)/len(U))))
-                    print("   RMSE: {}".format(np.round(RMS[-1], 6)))
-                    if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-                    print("------------------")
-                    last_pulse = time()
+#                 if (pulse_T >= 0 and time()-last_pulse > pulse_T) or (epoch == nepochs-1 and i == len(U)-1):
+#                     print("------------------")
+#                     print("  Epoch: {}%".format(int(100*(epoch+1)/nepochs)))
+#                     print("   Iter: {}%".format(int(100*(i+1)/len(U))))
+#                     print("   RMSE: {}".format(np.round(RMS[-1], 6)))
+#                     if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
+#                     print("------------------")
+#                     last_pulse = time()
+                
         print("\nTraining complete!\n\n")
         RMS.append(self.compute_rms(U, Y))
         return RMS, trcov
