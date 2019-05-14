@@ -127,7 +127,7 @@ class KNN:
 
 ####
 
-    def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, dtol=-1, dslew=1, print_every=1):
+    def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, tolerance=-1, patience=1, print_every=1):
         """
         nepochs: number of epochs (presentations of the training data); integer
               U: input training data; float array m samples by nu inputs
@@ -221,7 +221,7 @@ class KNN:
             pbar.set_description(f"Epoch: {epoch+1} Rms Error: {RMS[-1]:.3e}")
             
             # Check for convergence
-            if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-dslew])/dslew < dtol:
+            if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-patience])/patience < tolerance:
                 print("\nConverged after {} epochs!\n\n".format(epoch+1))
                 return RMS, trcov
 
@@ -235,25 +235,8 @@ class KNN:
                 self.update(u, y, h, l, step)
                 if method == 'ekf': trcov.append(np.trace(self.P))
                 
-#             if (epoch % print_every ==0):
-#                 print("------------------")
-#                 print("  Epoch: {}".format((epoch+1)))
-#                 print(" Validation RMSE: {}".format(np.round(RMS[-1], 6)))
-#                 if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-#                 print("------------------")
-                    
-                # Heartbeat
-#                 if (pulse_T >= 0 and time()-last_pulse > pulse_T) or (epoch == nepochs-1 and i == len(U)-1):
-#                     print("------------------")
-#                     print("  Epoch: {}%".format(int(100*(epoch+1)/nepochs)))
-#                     print("   Iter: {}%".format(int(100*(i+1)/len(U))))
-#                     print("   RMSE: {}".format(np.round(RMS[-1], 6)))
-#                     if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-#                     print("------------------")
-#                     last_pulse = time()
-                
         print("\nTraining complete!\n\n")
-        RMS.append(self.compute_rms(U, Y))
+        RMS.append(self.compute_rms(U_val, Y_val))
         return RMS, trcov
 
 ####

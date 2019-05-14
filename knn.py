@@ -127,32 +127,43 @@ class KNN:
 
 ####
 
-    def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, dtol=-1, dslew=1, print_every=1):
-        """
-        nepochs: number of epochs (presentations of the training data); integer
-              U: input training data; float array m samples by nu inputs
-              Y: output training data; float array m samples by ny outputs
-         method: extended kalman filter ('ekf') or stochastic gradient descent ('sgd')
-              P: initial weight covariance for ekf; float scalar or (nW by nW) posdef array
-              Q: process covariance for ekf; float scalar or (nW by nW) semiposdef array
-              R: data covariance for ekf; float scalar or (ny by ny) posdef array
-           step: step-size scaling; float scalar
-           dtol: finish when RMS error avg change is <dtol (or nepochs exceeded); float scalar
-          dslew: how many deltas over which to examine average RMS change; integer
-        print_every: After how many epoch it should print 
-        #pulse_T: number of seconds between displaying current training status; float
+    def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, tolerance=-1, patience=1, print_every=1):
+        """Function to train the neural network
+        
+        Arguments:
+            nepochs {int} -- the total number of epochs the network should be trained for
+            U {numpy array} -- Input training data, shape (m,nu), m samples and nu dimensions
+            Y {numpy aray} -- Output training labels, shape (m,ny)
+            U_val {numpy array} -- Validation input data
+            Y_val {numpy array} -- Validation label
+            method {str} -- extended kalman filter 'ekf' or stochastic gradient descent 'sgd
+        
+        Keyword Arguments:
+            P {float or numpy array} -- Initial weight covaraince matrix, if float then diagonal matrix, else positive defintite matrix of shape (nW,nW) (default: {None})
+            Q {float or numpy array} -- Initial process covariance matrix, if float then diagonal matrix, else semi positive defintie matrix of shape (nW,nW) (default: {None})
+            R {float or numpy array } -- Initial Data Covaraince for ekf, if float then diagnoal matrix, else positive definite matrix of shape (ny,ny)  (default: {None})
+            step {int} -- ste=-size scaling (default: {1})
+            tolerance {int} -- tolerance limit for early stopping (default: {-1})
+            patience {int} -- number of epochs to be patient for in early stopping (default: {1})
+            print_every {int} -- for old display logic (default: {1})
+        
+        Raises:
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+        
+        Returns:
+            # RMS -- List of validation RMS errors 
+            trcov -- trace of covariance matrix (if ekf)
+         """
 
-        If method is 'sgd' then P, Q, and R are unused, so carefully choose step.
-        If method is 'ekf' then step=1 is "optimal", R must be specified, and:
-            P is None: P = self.P if self.P has been created by previous training
-            Q is None: Q = 0
-        If P, Q, or R are given as scalars, they will scale an identity matrix.
-        Set pulse_T to -1 (default) to suppress training status display.
-
-        Returns a list of the RMS errors at every epoch and a list of the covariance traces
-        at every iteration. The covariance trace list will be empty if using sgd.
-
-        """
         # Verify data
         U = np.float64(U)
         Y = np.float64(Y)
@@ -221,7 +232,7 @@ class KNN:
             pbar.set_description(f"Epoch: {epoch+1} Rms Error: {RMS[-1]:.3e}")
             
             # Check for convergence
-            if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-dslew])/dslew < dtol:
+            if len(RMS) > patience and abs(RMS[-1] - RMS[-1-patience])/patience < tolerance:
                 print("\nConverged after {} epochs!\n\n".format(epoch+1))
                 return RMS, trcov
 
@@ -235,25 +246,8 @@ class KNN:
                 self.update(u, y, h, l, step)
                 if method == 'ekf': trcov.append(np.trace(self.P))
                 
-#             if (epoch % print_every ==0):
-#                 print("------------------")
-#                 print("  Epoch: {}".format((epoch+1)))
-#                 print(" Validation RMSE: {}".format(np.round(RMS[-1], 6)))
-#                 if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-#                 print("------------------")
-                    
-                # Heartbeat
-#                 if (pulse_T >= 0 and time()-last_pulse > pulse_T) or (epoch == nepochs-1 and i == len(U)-1):
-#                     print("------------------")
-#                     print("  Epoch: {}%".format(int(100*(epoch+1)/nepochs)))
-#                     print("   Iter: {}%".format(int(100*(i+1)/len(U))))
-#                     print("   RMSE: {}".format(np.round(RMS[-1], 6)))
-#                     if method == 'ekf': print("tr(Cov): {}".format(np.round(trcov[-1], 6)))
-#                     print("------------------")
-#                     last_pulse = time()
-                
         print("\nTraining complete!\n\n")
-        RMS.append(self.compute_rms(U, Y))
+        RMS.append(self.compute_rms(U_val, Y_val))
         return RMS, trcov
 
 ####
