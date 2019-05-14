@@ -10,7 +10,7 @@ import numpy as np; npl = np.linalg
 from scipy.linalg import block_diag
 from time import time
 import pickle
-from tqdm import tqdm
+from tqdm import tqdm_notebook as tqdm
 
 ##########
 
@@ -148,19 +148,19 @@ class KNN:
             print_every {int} -- for old display logic (default: {1})
         
         Raises:
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
-            ValueError: [description]
+            ValueError: if size of U and Y are different 
+            ValueError: if shape of U is wrong
+            ValueError: if shape of Y is wrong
+            ValueError: if P is None and self.P is not specified
+            ValueError: if P is not a float or a matrix of shape (nW,nW)
+            ValueError: if Q is not a float or a matrix of shape (nW,nW)
+            ValueError: if R is not specified for training
+            ValueError: if R is not a float or a matrix of shape (ny,ny)
+            ValueError: if R matrix is not positive definite 
+            ValueError: if training method is not efk or sgd
         
         Returns:
-            # RMS -- List of validation RMS errors 
+            RMS -- List of validation RMS errors 
             trcov -- trace of covariance matrix (if ekf)
          """
 
@@ -232,8 +232,8 @@ class KNN:
             pbar.set_description(f"Epoch: {epoch+1} Rms Error: {RMS[-1]:.3e}")
             
             # Check for convergence
-            if len(RMS) > patience and abs(RMS[-1] - RMS[-1-patience])/patience < tolerance:
-                print("\nConverged after {} epochs!\n\n".format(epoch+1))
+            if len(RMS) > patience and np.alltrue(RMS[-patience:] > min(RMS) + tolerance) :
+                print(f"\nEarly stopping after {epoch+1} epochs\n\n")
                 return RMS, trcov
 
             # Train

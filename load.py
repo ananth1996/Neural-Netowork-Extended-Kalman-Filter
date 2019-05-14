@@ -15,3 +15,9 @@ def load_bikes_data():
     y = df.pop('cnt').values
     X = df.values
     return X,y
+
+def load_wine_data():
+    df = pd.read_csv('Data/winequality-white.csv',sep=';')
+    y = df.pop('quality').values
+    X = df.values
+    return X,y

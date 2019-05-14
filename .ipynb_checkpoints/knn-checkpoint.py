@@ -10,7 +10,7 @@ import numpy as np; npl = np.linalg
 from scipy.linalg import block_diag
 from time import time
 import pickle
-from tqdm import tqdm
+from tqdm import tqdm_notebook as tqdm
 
 ##########
 
@@ -128,31 +128,42 @@ class KNN:
 ####
 
     def train(self, nepochs, U, Y, U_val, Y_val, method, P=None, Q=None, R=None, step=1, tolerance=-1, patience=1, print_every=1):
-        """
-        nepochs: number of epochs (presentations of the training data); integer
-              U: input training data; float array m samples by nu inputs
-              Y: output training data; float array m samples by ny outputs
-         method: extended kalman filter ('ekf') or stochastic gradient descent ('sgd')
-              P: initial weight covariance for ekf; float scalar or (nW by nW) posdef array
-              Q: process covariance for ekf; float scalar or (nW by nW) semiposdef array
-              R: data covariance for ekf; float scalar or (ny by ny) posdef array
-           step: step-size scaling; float scalar
-           dtol: finish when RMS error avg change is <dtol (or nepochs exceeded); float scalar
-          dslew: how many deltas over which to examine average RMS change; integer
-        print_every: After how many epoch it should print 
-        #pulse_T: number of seconds between displaying current training status; float
+        """Function to train the neural network
+        
+        Arguments:
+            nepochs {int} -- the total number of epochs the network should be trained for
+            U {numpy array} -- Input training data, shape (m,nu), m samples and nu dimensions
+            Y {numpy aray} -- Output training labels, shape (m,ny)
+            U_val {numpy array} -- Validation input data
+            Y_val {numpy array} -- Validation label
+            method {str} -- extended kalman filter 'ekf' or stochastic gradient descent 'sgd
+        
+        Keyword Arguments:
+            P {float or numpy array} -- Initial weight covaraince matrix, if float then diagonal matrix, else positive defintite matrix of shape (nW,nW) (default: {None})
+            Q {float or numpy array} -- Initial process covariance matrix, if float then diagonal matrix, else semi positive defintie matrix of shape (nW,nW) (default: {None})
+            R {float or numpy array } -- Initial Data Covaraince for ekf, if float then diagnoal matrix, else positive definite matrix of shape (ny,ny)  (default: {None})
+            step {int} -- ste=-size scaling (default: {1})
+            tolerance {int} -- tolerance limit for early stopping (default: {-1})
+            patience {int} -- number of epochs to be patient for in early stopping (default: {1})
+            print_every {int} -- for old display logic (default: {1})
+        
+        Raises:
+            ValueError: if size of U and Y are different 
+            ValueError: if shape of U is wrong
+            ValueError: if shape of Y is wrong
+            ValueError: if P is None and self.P is not specified
+            ValueError: if P is not a float or a matrix of shape (nW,nW)
+            ValueError: if Q is not a float or a matrix of shape (nW,nW)
+            ValueError: if R is not specified for training
+            ValueError: if R is not a float or a matrix of shape (ny,ny)
+            ValueError: if R matrix is not positive definite 
+            ValueError: if training method is not efk or sgd
+        
+        Returns:
+            RMS -- List of validation RMS errors 
+            trcov -- trace of covariance matrix (if ekf)
+         """
 
-        If method is 'sgd' then P, Q, and R are unused, so carefully choose step.
-        If method is 'ekf' then step=1 is "optimal", R must be specified, and:
-            P is None: P = self.P if self.P has been created by previous training
-            Q is None: Q = 0
-        If P, Q, or R are given as scalars, they will scale an identity matrix.
-        Set pulse_T to -1 (default) to suppress training status display.
-
-        Returns a list of the RMS errors at every epoch and a list of the covariance traces
-        at every iteration. The covariance trace list will be empty if using sgd.
-
-        """
         # Verify data
         U = np.float64(U)
         Y = np.float64(Y)
@@ -221,8 +232,8 @@ class KNN:
             pbar.set_description(f"Epoch: {epoch+1} Rms Error: {RMS[-1]:.3e}")
             
             # Check for convergence
-            if len(RMS) > dslew and abs(RMS[-1] - RMS[-1-patience])/patience < tolerance:
-                print("\nConverged after {} epochs!\n\n".format(epoch+1))
+            if len(RMS) > patience and np.alltrue(RMS[-patience:] > min(RMS) + tolerance) :
+                print(f"\nEarly stopping after {epoch+1} epochs\n\n")
                 return RMS, trcov
 
             # Train
