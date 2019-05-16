@@ -161,7 +161,7 @@ class KNN:
         
         Returns:
             RMS -- List of validation RMS errors 
-            trcov -- trace of covariance matrix (if ekf)
+            epoch_errors -- The validation errors in the first epoch after each sample  
          """
 
         # Verify data
@@ -219,7 +219,7 @@ class KNN:
         #last_pulse = 0
         RMS = []
         trcov = []
-
+        epoch_errors =[]
         # Shuffle data between epochs
         print("Training...")
         pbar = tqdm(range(nepochs))
@@ -238,17 +238,18 @@ class KNN:
 
             # Train
             for i, (u, y) in enumerate(zip(U_shuffled, Y_shuffled)):
-
+                
                 # Forward propagation
                 h, l = self.feedforward(u, get_l=True)
-
+                if epoch ==0:
+                    epoch_errors.append(self.compute_rms(U_val,Y_val))
                 # Do the learning
                 self.update(u, y, h, l, step)
                 if method == 'ekf': trcov.append(np.trace(self.P))
                 
         print("\nTraining complete!\n\n")
         RMS.append(self.compute_rms(U_val, Y_val))
-        return RMS, trcov
+        return RMS, epoch_errors
 
 ####
 
