@@ -139,9 +139,16 @@ class KNN:
             method {str} -- extended kalman filter 'ekf' or stochastic gradient descent 'sgd
         
         Keyword Arguments:
-            P {float or numpy array} -- Initial weight covaraince matrix, if float then diagonal matrix, else positive defintite matrix of shape (nW,nW) (default: {None})
-            Q {float or numpy array} -- Initial process covariance matrix, if float then diagonal matrix, else semi positive defintie matrix of shape (nW,nW) (default: {None})
-            R {float or numpy array } -- Initial Data Covaraince for ekf, if float then diagnoal matrix, else positive definite matrix of shape (ny,ny)  (default: {None})
+            P {float or numpy array} -- Initial weight covaraince matrix, 
+                                        if float then diagonal matrix, 
+                                        else positive defintite matrix of shape (nW,nW) (default: {None})
+            Q {float or numpy array} -- Initial process covariance matrix, 
+                                        if float then diagonal matrix, 
+                                        else positive semi defintie matrix of shape (nW,nW) (default: {None})
+            R {float or numpy array } -- Initial Data Covaraince for ekf, 
+                                         if float then diagnoal matrix, 
+                                         else positive definite matrix of shape (ny,ny)  (default: {None})
+            
             step {int} -- ste=-size scaling (default: {1})
             tolerance {int} -- tolerance limit for early stopping (default: {-1})
             patience {int} -- number of epochs to be patient for in early stopping (default: {1})
