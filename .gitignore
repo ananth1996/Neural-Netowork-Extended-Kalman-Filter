@@ -3,3 +3,13 @@ __pycache__/knn.cpython-36.pyc
 .vscode/settings.json
 .ipynb_checkpoints/*
 Data/.ipynb_checkpoints/*
+Report/_minted-Report/
+Report/Report.aux
+Report/Report.bbl
+Report/Report.blg
+Report/Report.fdb_latexmk
+Report/Report.fls
+Report/Report.log
+Report/Report.out
+Report/Report.toc
+Report/Report.synctex.gz
